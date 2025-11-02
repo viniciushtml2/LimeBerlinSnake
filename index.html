@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grit - Synced Habit Tracker</title>
-    <!-- Cache control meta tags to prevent caching on GitHub Pages -->
+    <title>Grit - Habit Tracker</title>
     <meta http-equiv='cache-control' content='no-cache'> 
     <meta http-equiv='expires' content='0'> 
     <meta http-equiv='pragma' content='no-cache'>
@@ -303,22 +302,6 @@
             border-radius: 10px;
             font-weight: 600;
         }
-        
-        .export-import {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .export-button, .import-button {
-            background: #f5f5f7;
-            border: 1px solid #e5e5ea;
-            border-radius: 10px;
-            padding: 8px 15px;
-            font-size: 12px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -362,12 +345,6 @@
             <div class="empty-icon">📝</div>
             <div class="empty-text">No habits yet. Start building good habits today!</div>
             <button class="empty-button" id="emptyAddButton">Add Your First Habit</button>
-            
-            <div class="export-import">
-                <button class="export-button" id="exportButton">Export Data</button>
-                <button class="import-button" id="importButton">Import Data</button>
-                <input type="file" id="importFile" accept=".json" style="display: none;">
-            </div>
         </div>
     </div>
     
@@ -406,16 +383,14 @@
     </div>
 
     <script>
-        // Enhanced with cloud sync capability
+        // JSONBin.io Cloud Storage - USING YOUR CREDENTIALS
+        const JSONBIN_BIN_ID = '6907214c43b1c97be9936c40';
+        const JSONBIN_MASTER_KEY = '$2a$10$/rOhg7dsrXZ8kGYfHtXC0.fDFaG8Ai1OX.Grdv93QAozKS.3VSg0O';
+        
         let habits = [];
-        
-        // Generate a user ID that persists across sessions
-        let USER_ID = localStorage.getItem('grit_user_id');
-        if (!USER_ID) {
-            USER_ID = 'user_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('grit_user_id', USER_ID);
-        }
-        
+        let USER_ID = localStorage.getItem('grit_user_id') || 'user_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('grit_user_id', USER_ID);
+
         // DOM elements
         const habitsList = document.getElementById('habitsList');
         const addButton = document.getElementById('addButton');
@@ -434,83 +409,85 @@
         const currentDate = document.getElementById('currentDate');
         const lastSyncTime = document.getElementById('lastSyncTime');
         const manualSync = document.getElementById('manualSync');
-        const exportButton = document.getElementById('exportButton');
-        const importButton = document.getElementById('importButton');
-        const importFile = document.getElementById('importFile');
-        
+
         // Set current date
         const now = new Date();
         const options = { weekday: 'long', month: 'short', day: 'numeric' };
         currentDate.textContent = now.toLocaleDateString('en-US', options);
-        
-        // Simulated cloud storage using localStorage (for demo purposes)
-        // In a real app, this would be an actual API call
-        class CloudStorage {
+
+        // Real Cloud Storage with JSONBin.io
+        class JSONBinStorage {
             static async saveHabits(habits) {
-                return new Promise((resolve) => {
-                    setTimeout(() => {
-                        // Simulate API call by storing in localStorage with user ID
-                        localStorage.setItem(`grit_habits_${USER_ID}`, JSON.stringify({
+                try {
+                    const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': JSONBIN_MASTER_KEY,
+                            'X-Bin-Name': `Grit Habits - ${USER_ID}`
+                        },
+                        body: JSON.stringify({
+                            userId: USER_ID,
                             habits: habits,
                             lastUpdated: new Date().toISOString()
-                        }));
-                        resolve({ success: true });
-                    }, 500); // Simulate network delay
-                });
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save to cloud');
+                    return await response.json();
+                } catch (error) {
+                    console.error('Cloud save failed:', error);
+                    throw error;
+                }
             }
             
             static async loadHabits() {
-                return new Promise((resolve) => {
-                    setTimeout(() => {
-                        // Simulate API call by loading from localStorage
-                        const stored = localStorage.getItem(`grit_habits_${USER_ID}`);
-                        if (stored) {
-                            const data = JSON.parse(stored);
-                            resolve(data.habits || []);
-                        } else {
-                            resolve([]);
+                try {
+                    const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+                        headers: {
+                            'X-Master-Key': JSONBIN_MASTER_KEY
                         }
-                    }, 300); // Simulate network delay
-                });
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to load from cloud');
+                    const data = await response.json();
+                    
+                    // Return habits only for current user
+                    if (data.record && data.record.userId === USER_ID) {
+                        return data.record.habits || [];
+                    }
+                    return [];
+                } catch (error) {
+                    console.error('Cloud load failed:', error);
+                    throw error;
+                }
             }
         }
-        
+
         // Load habits from cloud
         async function loadHabitsFromCloud() {
             try {
                 showSyncStatus('Syncing...');
-                const cloudHabits = await CloudStorage.loadHabits();
                 
-                if (cloudHabits && cloudHabits.length > 0) {
-                    habits = cloudHabits;
-                    showSyncStatus('Synced from cloud');
-                } else {
-                    // Fallback to local storage
-                    const localHabits = localStorage.getItem('grit_habits_local');
-                    if (localHabits) {
-                        habits = JSON.parse(localHabits);
-                        showSyncStatus('Loaded from local storage');
-                    } else {
-                        habits = [];
-                        showSyncStatus('No habits found');
-                    }
-                }
+                // Try cloud first
+                const cloudHabits = await JSONBinStorage.loadHabits();
+                habits = cloudHabits;
+                showSyncStatus('Synced from cloud');
                 
-                updateSyncTime();
-                renderHabits();
             } catch (error) {
-                console.error('Sync failed:', error);
-                showSyncStatus('Sync failed');
                 // Fallback to local storage
+                showSyncStatus('Cloud sync failed, using local data');
                 const localHabits = localStorage.getItem('grit_habits_local');
                 if (localHabits) {
                     habits = JSON.parse(localHabits);
-                    renderHabits();
                 }
             }
+            
+            updateSyncTime();
+            renderHabits();
         }
-        
-        // Save habits to cloud and localStorage
+
+        // Save habits to cloud
         async function saveHabitsToCloud() {
             try {
                 showSyncStatus('Saving...');
@@ -519,32 +496,29 @@
                 localStorage.setItem('grit_habits_local', JSON.stringify(habits));
                 
                 // Save to cloud
-                await CloudStorage.saveHabits(habits);
+                await JSONBinStorage.saveHabits(habits);
                 
                 showSyncStatus('Saved to cloud');
                 updateSyncTime();
             } catch (error) {
-                console.error('Cloud save failed:', error);
                 showSyncStatus('Cloud save failed');
                 // Still update local storage
                 localStorage.setItem('grit_habits_local', JSON.stringify(habits));
                 updateSyncTime();
             }
         }
-        
+
         function showSyncStatus(message) {
             const syncStatus = document.getElementById('syncStatus');
             syncStatus.innerHTML = `<span>${message}</span><button class="sync-button" id="manualSync">Sync Now</button>`;
-            
-            // Reattach event listener to the new button
             document.getElementById('manualSync').addEventListener('click', manualSyncClick);
         }
-        
+
         function updateSyncTime() {
             const now = new Date();
             lastSyncTime.textContent = now.toLocaleTimeString();
         }
-        
+
         // Render habits
         function renderHabits() {
             habitsList.innerHTML = '';
@@ -561,181 +535,94 @@
             emptyState.style.display = 'none';
             habitsCount.textContent = `${habits.length} ${habits.length === 1 ? 'habit' : 'habits'}`;
             
-            // Calculate stats
             const completed = habits.filter(habit => habit.completed).length;
             const total = habits.length;
             const rate = Math.round((completed / total) * 100);
+            const longestStreak = habits.length > 0 ? Math.max(...habits.map(habit => habit.streak)) : 0;
             
             completedCount.textContent = completed;
             completionRate.textContent = `${rate}%`;
-            
-            // Find the longest streak
-            const longestStreak = habits.length > 0 ? Math.max(...habits.map(habit => habit.streak)) : 0;
             streakCount.textContent = longestStreak;
             
             habits.forEach(habit => {
                 const habitCard = document.createElement('div');
                 habitCard.className = 'habit-card';
                 habitCard.innerHTML = `
-                    <div class="habit-icon" style="background-color: ${habit.color}">
-                        ${getCategoryIcon(habit.category)}
-                    </div>
+                    <div class="habit-icon" style="background-color: ${habit.color}">${getCategoryIcon(habit.category)}</div>
                     <div class="habit-info">
                         <div class="habit-name">${habit.name}</div>
                         <div class="habit-streak">${habit.streak} day streak</div>
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: ${(habit.streak / 21) * 100}%; background-color: ${habit.color}"></div>
-                        </div>
+                        <div class="progress-container"><div class="progress-bar" style="width: ${(habit.streak / 21) * 100}%; background-color: ${habit.color}"></div></div>
                     </div>
-                    <div class="habit-check ${habit.completed ? 'checked' : ''}">
-                        ${habit.completed ? '✓' : ''}
-                    </div>
+                    <div class="habit-check ${habit.completed ? 'checked' : ''}">${habit.completed ? '✓' : ''}</div>
                 `;
-                
-                // Add click event to toggle completion
-                habitCard.addEventListener('click', () => {
-                    toggleHabitCompletion(habit.id);
-                });
-                
+                habitCard.addEventListener('click', () => toggleHabitCompletion(habit.id));
                 habitsList.appendChild(habitCard);
             });
         }
-        
-        // Get icon for category
+
         function getCategoryIcon(category) {
-            const icons = {
-                health: '💪',
-                productivity: '📊',
-                mindfulness: '🧘',
-                learning: '📚',
-                personal: '🌟'
-            };
+            const icons = { health: '💪', productivity: '📊', mindfulness: '🧘', learning: '📚', personal: '🌟' };
             return icons[category] || '✅';
         }
-        
-        // Toggle habit completion
+
         function toggleHabitCompletion(id) {
             const habit = habits.find(h => h.id === id);
             if (habit) {
                 habit.completed = !habit.completed;
-                if (habit.completed) {
-                    habit.streak += 1;
-                } else {
-                    habit.streak = Math.max(0, habit.streak - 1);
-                }
+                habit.completed ? habit.streak += 1 : habit.streak = Math.max(0, habit.streak - 1);
                 renderHabits();
-                saveHabitsToCloud(); // Auto-save on change
+                saveHabitsToCloud();
             }
         }
-        
-        // Show add habit modal
+
         function showAddHabitModal() {
             addHabitModal.style.display = 'flex';
             habitNameInput.value = '';
             habitCategoryInput.value = 'health';
             habitFrequencyInput.value = 'daily';
         }
-        
-        // Hide add habit modal
+
         function hideAddHabitModal() {
             addHabitModal.style.display = 'none';
         }
-        
-        // Add new habit
+
         function addNewHabit() {
             const name = habitNameInput.value.trim();
             if (!name) return;
             
-            const category = habitCategoryInput.value;
-            const frequency = habitFrequencyInput.value;
-            
             const colors = ['#ff9f43', '#54a0ff', '#5f27cd', '#00d2d3', '#ff6b6b', '#48dbfb', '#1dd1a1'];
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            
             const newHabit = {
-                id: Date.now(), // Use timestamp for unique ID
+                id: Date.now(),
                 name,
-                category,
-                frequency,
+                category: habitCategoryInput.value,
+                frequency: habitFrequencyInput.value,
                 streak: 0,
                 completed: false,
-                color: randomColor
+                color: colors[Math.floor(Math.random() * colors.length)]
             };
             
             habits.push(newHabit);
             renderHabits();
             hideAddHabitModal();
-            saveHabitsToCloud(); // Auto-save on change
+            saveHabitsToCloud();
         }
-        
-        // Export habits to JSON file
-        function exportHabits() {
-            const data = JSON.stringify(habits, null, 2);
-            const blob = new Blob([data], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `grit-habits-${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        
-        // Import habits from JSON file
-        function importHabits(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedHabits = JSON.parse(e.target.result);
-                    if (Array.isArray(importedHabits)) {
-                        habits = importedHabits;
-                        renderHabits();
-                        saveHabitsToCloud();
-                        showSyncStatus('Data imported successfully');
-                    } else {
-                        showSyncStatus('Invalid file format');
-                    }
-                } catch (error) {
-                    showSyncStatus('Error importing file');
-                }
-            };
-            reader.readAsText(file);
-            
-            // Reset file input
-            importFile.value = '';
-        }
-        
-        // Manual sync click handler
+
         function manualSyncClick() {
             saveHabitsToCloud();
         }
-        
+
         // Event listeners
         addButton.addEventListener('click', showAddHabitModal);
         emptyAddButton.addEventListener('click', showAddHabitModal);
         cancelButton.addEventListener('click', hideAddHabitModal);
         saveButton.addEventListener('click', addNewHabit);
         manualSync.addEventListener('click', manualSyncClick);
-        exportButton.addEventListener('click', exportHabits);
-        importButton.addEventListener('click', () => importFile.click());
-        importFile.addEventListener('change', importHabits);
-        
-        // Close modal when clicking outside
-        addHabitModal.addEventListener('click', (e) => {
-            if (e.target === addHabitModal) {
-                hideAddHabitModal();
-            }
-        });
-        
-        // Auto-sync every 5 minutes
-        setInterval(() => {
-            if (habits.length > 0) {
-                saveHabitsToCloud();
-            }
-        }, 5 * 60 * 1000);
-        
+        addHabitModal.addEventListener('click', (e) => { if (e.target === addHabitModal) hideAddHabitModal(); });
+
+        // Auto-sync every 2 minutes
+        setInterval(() => { if (habits.length > 0) saveHabitsToCloud(); }, 2 * 60 * 1000);
+
         // Initial load
         loadHabitsFromCloud();
     </script>
