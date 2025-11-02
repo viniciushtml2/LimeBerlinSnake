@@ -12,47 +12,30 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Courier New', monospace;
         }
         
         body {
-            background: #f0f0f0;
-            color: #2a2a2a;
+            background: #0a0a0a;
+            color: #e0e0e0;
             max-width: 414px;
             margin: 0 auto;
             min-height: 100vh;
             position: relative;
             padding-bottom: 30px;
             background-image: 
-                radial-gradient(circle at 25% 25%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, rgba(255, 119, 198, 0.1) 0%, transparent 50%);
+                radial-gradient(circle at 25% 25%, rgba(120, 119, 198, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255, 119, 198, 0.05) 0%, transparent 50%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         header {
-            background: #2a2a2a;
+            background: #1a1a1a;
             color: #fff;
             padding: 20px;
-            border-radius: 0 0 12px 12px;
-            border: 3px solid #000;
+            border-radius: 0 0 0 0;
+            border-bottom: 2px solid #333;
             position: relative;
             overflow: hidden;
-        }
-        
-        header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #ff6b6b);
-            background-size: 200% 100%;
-            animation: rainbow 3s linear infinite;
-        }
-        
-        @keyframes rainbow {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 200% 50%; }
         }
         
         .header-content {
@@ -62,16 +45,19 @@
         }
         
         h1 {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            text-transform: lowercase;
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: 'Times New Roman', serif;
+            color: #fff;
         }
         
         .date {
             font-size: 13px;
-            opacity: 0.8;
+            opacity: 0.7;
             font-weight: 300;
+            font-family: 'Inter', sans-serif;
         }
         
         .stats {
@@ -79,9 +65,9 @@
             justify-content: space-around;
             margin-top: 20px;
             padding: 15px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0;
+            border: 1px solid #333;
         }
         
         .stat-item {
@@ -90,26 +76,29 @@
         
         .stat-value {
             font-size: 20px;
-            font-weight: 700;
-            color: #4ecdc4;
+            font-weight: 600;
+            color: #8b5cf6;
+            font-family: 'Inter', sans-serif;
         }
         
         .stat-label {
             font-size: 11px;
             opacity: 0.7;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            font-family: 'Inter', sans-serif;
         }
         
         .sync-status {
             text-align: center;
             padding: 12px;
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.6);
             background: rgba(0, 0, 0, 0.3);
             margin: 15px 0 0 0;
-            border-radius: 6px;
-            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 0;
+            border: 1px solid #333;
+            font-family: 'Inter', sans-serif;
         }
         
         .online-indicator {
@@ -124,7 +113,7 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: #4ecdc4;
+            background: #10b981;
             animation: pulse 2s infinite;
         }
         
@@ -137,13 +126,14 @@
         .edit-mode {
             text-align: center;
             padding: 10px;
-            background: #ffeaa7;
-            color: #2a2a2a;
+            background: #1e3a8a;
+            color: #fff;
             margin: 10px 20px;
-            border-radius: 8px;
-            border: 2px dashed #fdcb6e;
+            border-radius: 0;
+            border: 1px solid #374151;
             font-size: 12px;
-            font-weight: 700;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
         }
         
         .habits-container {
@@ -151,26 +141,33 @@
         }
         
         .section-title {
-            font-size: 16px;
-            font-weight: 700;
+            font-size: 18px;
+            font-weight: 300;
             margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            text-transform: lowercase;
-            letter-spacing: -0.5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: 'Times New Roman', serif;
+            color: #fff;
         }
         
         .edit-toggle {
-            background: #2a2a2a;
+            background: #333;
             color: white;
-            border: none;
+            border: 1px solid #555;
             padding: 8px 16px;
-            border-radius: 20px;
+            border-radius: 0;
             font-size: 11px;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .edit-toggle:hover {
+            background: #444;
         }
         
         .habits-list {
@@ -180,35 +177,32 @@
         }
         
         .habit-card {
-            background: white;
-            border-radius: 12px;
+            background: #1a1a1a;
+            border-radius: 0;
             padding: 16px;
-            box-shadow: 
-                0 2px 4px rgba(0, 0, 0, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
             display: flex;
             align-items: center;
             transition: all 0.3s ease;
-            border: 2px solid #e0e0e0;
+            border: 1px solid #333;
             position: relative;
         }
         
         .habit-card:hover {
-            border-color: #4ecdc4;
-            transform: translateY(-1px);
+            border-color: #8b5cf6;
+            background: #222;
         }
         
         .habit-emoji {
             width: 40px;
             height: 40px;
-            border-radius: 10px;
+            border-radius: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 15px;
             font-size: 18px;
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
+            background: #2a2a2a;
+            border: 1px solid #444;
         }
         
         .habit-info {
@@ -216,32 +210,34 @@
         }
         
         .habit-name {
-            font-weight: 600;
+            font-weight: 500;
             margin-bottom: 4px;
-            color: #2a2a2a;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
         }
         
         .habit-meta {
             font-size: 11px;
-            color: #6c757d;
+            color: #9ca3af;
             display: flex;
             gap: 12px;
+            font-family: 'Inter', sans-serif;
         }
         
         .habit-streak {
-            color: #e17055;
+            color: #8b5cf6;
             font-weight: 600;
         }
         
         .habit-duration {
-            color: #00b894;
+            color: #10b981;
         }
         
         .habit-check {
             width: 26px;
             height: 26px;
-            border-radius: 8px;
-            border: 2px solid #dee2e6;
+            border-radius: 0;
+            border: 2px solid #444;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -249,22 +245,22 @@
             color: transparent;
             cursor: pointer;
             transition: all 0.2s ease;
-            background: white;
+            background: #2a2a2a;
         }
         
         .habit-check.checked {
-            background: #00b894;
-            border-color: #00b894;
-            color: white;
+            background: #10b981;
+            border-color: #10b981;
+            color: #000;
         }
         
         .delete-habit {
-            background: #ff6b6b;
+            background: #dc2626;
             color: white;
             border: none;
             width: 24px;
             height: 24px;
-            border-radius: 6px;
+            border-radius: 0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -273,6 +269,7 @@
             margin-left: 10px;
             opacity: 0;
             transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
         }
         
         .edit-mode-active .delete-habit {
@@ -282,16 +279,16 @@
         .progress-container {
             margin-top: 8px;
             height: 3px;
-            background: #e9ecef;
-            border-radius: 2px;
+            background: #333;
+            border-radius: 0;
             overflow: hidden;
         }
         
         .progress-bar {
             height: 100%;
-            border-radius: 2px;
+            border-radius: 0;
             transition: width 0.3s ease;
-            background: linear-gradient(90deg, #4ecdc4, #44a08d);
+            background: linear-gradient(90deg, #8b5cf6, #7c3aed);
         }
         
         .add-button {
@@ -300,24 +297,22 @@
             right: 20px;
             width: 56px;
             height: 56px;
-            border-radius: 50%;
-            background: #2a2a2a;
+            border-radius: 0;
+            background: #8b5cf6;
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            box-shadow: 
-                0 4px 12px rgba(0, 0, 0, 0.15),
-                0 2px 4px rgba(0, 0, 0, 0.1);
             border: none;
             z-index: 10;
             transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
         }
         
         .add-button:hover {
-            transform: scale(1.1);
-            background: #4ecdc4;
+            background: #7c3aed;
+            transform: scale(1.05);
         }
         
         .modal {
@@ -327,45 +322,31 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(42, 42, 42, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             z-index: 100;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(4px);
         }
         
         .modal-content {
-            background: white;
+            background: #1a1a1a;
             width: 90%;
             max-width: 350px;
-            border-radius: 16px;
+            border-radius: 0;
             padding: 25px;
-            box-shadow: 
-                0 20px 40px rgba(0, 0, 0, 0.2),
-                0 0 0 1px rgba(0, 0, 0, 0.1);
-            border: 3px solid #2a2a2a;
+            border: 1px solid #333;
             position: relative;
         }
         
-        .modal-content::before {
-            content: '';
-            position: absolute;
-            top: -3px;
-            left: -3px;
-            right: -3px;
-            bottom: -3px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 19px;
-            pointer-events: none;
-        }
-        
         .modal-title {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 300;
             margin-bottom: 20px;
             text-align: center;
-            text-transform: lowercase;
-            color: #2a2a2a;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+            font-family: 'Times New Roman', serif;
         }
         
         .form-group {
@@ -375,26 +356,29 @@
         label {
             display: block;
             margin-bottom: 6px;
-            font-weight: 600;
+            font-weight: 500;
             font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #6c757d;
+            letter-spacing: 1px;
+            color: #9ca3af;
+            font-family: 'Inter', sans-serif;
         }
         
         input, select {
             width: 100%;
             padding: 12px 14px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
+            border: 1px solid #333;
+            border-radius: 0;
             font-size: 14px;
-            background: white;
+            background: #2a2a2a;
+            color: #fff;
             transition: border-color 0.3s ease;
+            font-family: 'Inter', sans-serif;
         }
         
         input:focus, select:focus {
             outline: none;
-            border-color: #4ecdc4;
+            border-color: #8b5cf6;
         }
         
         .emoji-input-container {
@@ -406,23 +390,17 @@
         .emoji-preview {
             width: 40px;
             height: 40px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
+            border: 1px solid #333;
+            border-radius: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
-            background: #f8f9fa;
+            background: #2a2a2a;
         }
         
         .emoji-input {
             flex: 1;
-        }
-        
-        .emoji-suggestions {
-            font-size: 11px;
-            color: #6c757d;
-            margin-top: 5px;
         }
         
         .button-group {
@@ -434,38 +412,39 @@
         
         .btn {
             padding: 12px 20px;
-            border-radius: 8px;
+            border-radius: 0;
             font-weight: 600;
             border: none;
             font-size: 14px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            font-family: 'Inter', sans-serif;
         }
         
         .btn-cancel {
-            background: #6c757d;
+            background: #4b5563;
             color: white;
         }
         
         .btn-cancel:hover {
-            background: #5a6268;
+            background: #6b7280;
         }
         
         .btn-save {
-            background: #2a2a2a;
+            background: #8b5cf6;
             color: white;
         }
         
         .btn-save:hover {
-            background: #4ecdc4;
+            background: #7c3aed;
         }
         
         .empty-state {
             text-align: center;
             padding: 50px 20px;
-            color: #6c757d;
+            color: #6b7280;
         }
         
         .empty-icon {
@@ -478,31 +457,33 @@
             font-size: 14px;
             margin-bottom: 20px;
             line-height: 1.5;
+            font-family: 'Inter', sans-serif;
         }
         
         .empty-button {
-            background: #2a2a2a;
+            background: #8b5cf6;
             color: white;
             border: none;
             padding: 12px 24px;
-            border-radius: 8px;
+            border-radius: 0;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
         }
         
         .empty-button:hover {
-            background: #4ecdc4;
+            background: #7c3aed;
         }
         
         .expired-habit {
-            opacity: 0.6;
-            background: #f8f9fa;
+            opacity: 0.4;
+            background: #111;
         }
         
         .expired-habit .habit-name {
             text-decoration: line-through;
-            color: #6c757d;
+            color: #6b7280;
         }
     </style>
 </head>
@@ -572,9 +553,6 @@
                     <div class="emoji-preview" id="emojiPreview">📚</div>
                     <input type="text" id="habitEmoji" class="emoji-input" placeholder="type any emoji..." maxlength="2">
                 </div>
-                <div class="emoji-suggestions">
-                    try: 😊 🎉 📚 💪 🎵 🍕 ☕ 🎨 🏃 ✨
-                </div>
             </div>
             <div class="form-group">
                 <label for="habitDuration">How long to keep this?</label>
@@ -640,20 +618,29 @@
             editToggle.textContent = editMode ? 'done' : 'edit';
         });
 
-        // Shared Database Service
+        // Shared Database Service - FIXED VERSION
         class SharedDatabase {
             static async loadHabits() {
                 try {
+                    console.log('Loading habits from JSONBin...');
                     const response = await fetch(`https://api.jsonbin.io/v3/b/${SHARED_BIN_ID}/latest`, {
                         headers: {
                             'X-Master-Key': SHARED_MASTER_KEY
                         }
                     });
                     
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    if (!response.ok) {
+                        console.error('Response not OK:', response.status, response.statusText);
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
                     
                     const data = await response.json();
-                    return data.record?.habits || [];
+                    console.log('Loaded data:', data);
+                    
+                    // Handle case where record might be null or undefined
+                    const habits = data.record?.habits || [];
+                    console.log('Parsed habits:', habits);
+                    return habits;
                     
                 } catch (error) {
                     console.error('Failed to load shared habits:', error);
@@ -665,6 +652,7 @@
             
             static async saveHabits(habitsToSave) {
                 try {
+                    console.log('Saving habits to JSONBin:', habitsToSave);
                     const response = await fetch(`https://api.jsonbin.io/v3/b/${SHARED_BIN_ID}`, {
                         method: 'PUT',
                         headers: {
@@ -677,11 +665,16 @@
                         })
                     });
                     
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    if (!response.ok) {
+                        console.error('Save response not OK:', response.status, response.statusText);
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
                     
+                    const result = await response.json();
+                    console.log('Save successful:', result);
                     isOnline = true;
                     updateSyncStatus('saved to shared space');
-                    return await response.json();
+                    return result;
                     
                 } catch (error) {
                     console.error('Failed to save shared habits:', error);
@@ -696,7 +689,7 @@
             syncStatus.innerHTML = `
                 <div>${message}</div>
                 <div class="online-indicator">
-                    <div class="online-dot" style="background: ${isOnline ? '#4ecdc4' : '#ff6b6b'}"></div>
+                    <div class="online-dot" style="background: ${isOnline ? '#10b981' : '#dc2626'}"></div>
                     <span>${isOnline ? 'live updates' : 'offline mode'}</span>
                 </div>
             `;
@@ -724,20 +717,26 @@
             habits = sharedHabits;
             renderHabits();
             
-            if (isOnline) {
+            if (isOnline && habits.length > 0) {
                 updateSyncStatus('connected to shared space');
             }
         }
 
-        // Save shared habits
+        // Save shared habits - FIXED VERSION
         async function saveSharedHabits() {
             if (!isOnline) {
                 updateSyncStatus('offline - cant save');
-                return;
+                return false;
             }
             
             updateSyncStatus('saving...');
-            await SharedDatabase.saveHabits(habits);
+            try {
+                await SharedDatabase.saveHabits(habits);
+                return true;
+            } catch (error) {
+                console.error('Save failed:', error);
+                return false;
+            }
         }
 
         // Render habits
@@ -851,7 +850,8 @@
             addHabitModal.style.display = 'none';
         }
 
-        function addNewHabit() {
+        // FIXED: Save button functionality
+        async function addNewHabit() {
             const name = habitNameInput.value.trim();
             const emoji = habitEmojiInput.value.trim() || '📚';
             
@@ -860,7 +860,7 @@
                 return;
             }
             
-            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#fd79a8', '#a29bfe'];
+            const colors = ['#8b5cf6', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#06b6d4'];
             
             const newHabit = {
                 id: Date.now(),
@@ -876,7 +876,12 @@
             habits.push(newHabit);
             renderHabits();
             hideAddHabitModal();
-            saveSharedHabits();
+            
+            // Save to cloud and handle result
+            const saved = await saveSharedHabits();
+            if (!saved) {
+                alert('Note: Could not save to cloud, but habit was added locally.');
+            }
         }
 
         // Auto-refresh every 10 seconds
@@ -893,18 +898,23 @@
             }
         }, 10000);
 
-        // Clean expired habits on load
+        // Clean expired habits every minute
         setInterval(() => {
+            const beforeCount = habits.length;
             habits = habits.filter(habit => !isHabitExpired(habit));
-            renderHabits();
-            saveSharedHabits();
-        }, 60000); // Check every minute
+            if (habits.length !== beforeCount) {
+                renderHabits();
+                saveSharedHabits();
+            }
+        }, 60000);
 
-        // Event listeners
+        // Event listeners - FIXED: Proper event binding
         addButton.addEventListener('click', showAddHabitModal);
         emptyAddButton.addEventListener('click', showAddHabitModal);
         cancelButton.addEventListener('click', hideAddHabitModal);
         saveButton.addEventListener('click', addNewHabit);
+        
+        // Close modal when clicking outside
         addHabitModal.addEventListener('click', (e) => {
             if (e.target === addHabitModal) hideAddHabitModal();
         });
