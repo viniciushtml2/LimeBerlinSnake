@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grit - Shared Habit Tracker</title>
+    <title>Tracking app</title>
     <meta http-equiv='cache-control' content='no-cache'> 
     <meta http-equiv='expires' content='0'> 
     <meta http-equiv='pragma' content='no-cache'>
@@ -12,25 +12,47 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: 'Courier New', monospace;
         }
         
         body {
-            background-color: #f5f5f7;
-            color: #1d1d1f;
+            background: #f0f0f0;
+            color: #2a2a2a;
             max-width: 414px;
             margin: 0 auto;
             min-height: 100vh;
             position: relative;
             padding-bottom: 30px;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255, 119, 198, 0.1) 0%, transparent 50%);
         }
         
         header {
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 0 0 20px 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: #2a2a2a;
+            color: #fff;
+            padding: 20px;
+            border-radius: 0 0 12px 12px;
+            border: 3px solid #000;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #ff6b6b);
+            background-size: 200% 100%;
+            animation: rainbow 3s linear infinite;
+        }
+        
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
         }
         
         .header-content {
@@ -40,20 +62,26 @@
         }
         
         h1 {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
+            letter-spacing: -0.5px;
+            text-transform: lowercase;
         }
         
         .date {
-            font-size: 14px;
-            opacity: 0.9;
+            font-size: 13px;
+            opacity: 0.8;
+            font-weight: 300;
         }
         
         .stats {
             display: flex;
             justify-content: space-around;
-            margin-top: 15px;
-            padding: 10px 0;
+            margin-top: 20px;
+            padding: 15px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .stat-item {
@@ -61,45 +89,61 @@
         }
         
         .stat-value {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
+            color: #4ecdc4;
         }
         
         .stat-label {
-            font-size: 12px;
-            opacity: 0.8;
+            font-size: 11px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .sync-status {
             text-align: center;
-            padding: 10px;
-            font-size: 12px;
-            color: #8e8e93;
-            background: rgba(255, 255, 255, 0.5);
-            margin: 10px 20px;
-            border-radius: 10px;
+            padding: 12px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(0, 0, 0, 0.3);
+            margin: 15px 0 0 0;
+            border-radius: 6px;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
         }
         
         .online-indicator {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+            gap: 6px;
             margin-top: 5px;
         }
         
         .online-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            background: #34c759;
+            background: #4ecdc4;
             animation: pulse 2s infinite;
         }
         
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        .edit-mode {
+            text-align: center;
+            padding: 10px;
+            background: #ffeaa7;
+            color: #2a2a2a;
+            margin: 10px 20px;
+            border-radius: 8px;
+            border: 2px dashed #fdcb6e;
+            font-size: 12px;
+            font-weight: 700;
         }
         
         .habits-container {
@@ -107,44 +151,64 @@
         }
         
         .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            text-transform: lowercase;
+            letter-spacing: -0.5px;
+        }
+        
+        .edit-toggle {
+            background: #2a2a2a;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .habits-list {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
         
         .habit-card {
             background: white;
-            border-radius: 16px;
-            padding: 15px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
             display: flex;
             align-items: center;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
+            border: 2px solid #e0e0e0;
+            position: relative;
         }
         
-        .habit-card:active {
-            transform: scale(0.98);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        .habit-card:hover {
+            border-color: #4ecdc4;
+            transform: translateY(-1px);
         }
         
-        .habit-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+        .habit-emoji {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 15px;
-            font-size: 20px;
+            font-size: 18px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
         }
         
         .habit-info {
@@ -154,36 +218,71 @@
         .habit-name {
             font-weight: 600;
             margin-bottom: 4px;
+            color: #2a2a2a;
+        }
+        
+        .habit-meta {
+            font-size: 11px;
+            color: #6c757d;
+            display: flex;
+            gap: 12px;
         }
         
         .habit-streak {
-            font-size: 12px;
-            color: #8e8e93;
+            color: #e17055;
+            font-weight: 600;
+        }
+        
+        .habit-duration {
+            color: #00b894;
         }
         
         .habit-check {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 2px solid #e5e5ea;
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 14px;
             color: transparent;
             cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
         }
         
         .habit-check.checked {
-            background: #34c759;
-            border-color: #34c759;
+            background: #00b894;
+            border-color: #00b894;
             color: white;
         }
         
+        .delete-habit {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            margin-left: 10px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .edit-mode-active .delete-habit {
+            opacity: 1;
+        }
+        
         .progress-container {
-            margin-top: 10px;
-            height: 4px;
-            background: #e5e5ea;
+            margin-top: 8px;
+            height: 3px;
+            background: #e9ecef;
             border-radius: 2px;
             overflow: hidden;
         }
@@ -192,39 +291,33 @@
             height: 100%;
             border-radius: 2px;
             transition: width 0.3s ease;
-        }
-        
-        .delete-habit {
-            background: none;
-            border: none;
-            color: #ff3b30;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 5px;
-            margin-left: 10px;
-            opacity: 0.7;
-        }
-        
-        .delete-habit:hover {
-            opacity: 1;
+            background: linear-gradient(90deg, #4ecdc4, #44a08d);
         }
         
         .add-button {
             position: fixed;
-            bottom: 30px;
+            bottom: 25px;
             right: 20px;
-            width: 60px;
-            height: 60px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            background: #2a2a2a;
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.1);
             border: none;
             z-index: 10;
+            transition: all 0.3s ease;
+        }
+        
+        .add-button:hover {
+            transform: scale(1.1);
+            background: #4ecdc4;
         }
         
         .modal {
@@ -234,74 +327,146 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(42, 42, 42, 0.8);
             z-index: 100;
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(4px);
         }
         
         .modal-content {
             background: white;
-            width: 85%;
-            border-radius: 20px;
+            width: 90%;
+            max-width: 350px;
+            border-radius: 16px;
             padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(0, 0, 0, 0.1);
+            border: 3px solid #2a2a2a;
+            position: relative;
+        }
+        
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 19px;
+            pointer-events: none;
         }
         
         .modal-title {
-            font-size: 20px;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 700;
             margin-bottom: 20px;
             text-align: center;
+            text-transform: lowercase;
+            color: #2a2a2a;
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
         
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            font-size: 14px;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6c757d;
         }
         
         input, select {
             width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #e5e5ea;
-            border-radius: 10px;
+            padding: 12px 14px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4ecdc4;
+        }
+        
+        .emoji-picker {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .emoji-option {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
             font-size: 16px;
+        }
+        
+        .emoji-option:hover {
+            border-color: #4ecdc4;
+            transform: scale(1.1);
+        }
+        
+        .emoji-option.selected {
+            border-color: #4ecdc4;
+            background: #4ecdc4;
+            color: white;
         }
         
         .button-group {
             display: flex;
             justify-content: space-between;
             margin-top: 25px;
+            gap: 10px;
         }
         
         .btn {
             padding: 12px 20px;
-            border-radius: 10px;
+            border-radius: 8px;
             font-weight: 600;
             border: none;
-            font-size: 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .btn-cancel {
-            background: #f5f5f7;
-            color: #1d1d1f;
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-cancel:hover {
+            background: #5a6268;
         }
         
         .btn-save {
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            background: #2a2a2a;
             color: white;
+        }
+        
+        .btn-save:hover {
+            background: #4ecdc4;
         }
         
         .empty-state {
             text-align: center;
-            padding: 40px 20px;
-            color: #8e8e93;
+            padding: 50px 20px;
+            color: #6c757d;
         }
         
         .empty-icon {
@@ -311,54 +476,75 @@
         }
         
         .empty-text {
-            font-size: 16px;
+            font-size: 14px;
             margin-bottom: 20px;
+            line-height: 1.5;
         }
         
         .empty-button {
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            background: #2a2a2a;
             color: white;
             border: none;
             padding: 12px 24px;
-            border-radius: 10px;
+            border-radius: 8px;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .empty-button:hover {
+            background: #4ecdc4;
+        }
+        
+        .expired-habit {
+            opacity: 0.6;
+            background: #f8f9fa;
+        }
+        
+        .expired-habit .habit-name {
+            text-decoration: line-through;
+            color: #6c757d;
         }
     </style>
 </head>
 <body>
     <header>
         <div class="header-content">
-            <h1>Grit - Shared</h1>
+            <h1>Tracking app</h1>
             <div class="date" id="currentDate">Monday, Oct 16</div>
         </div>
         <div class="stats">
             <div class="stat-item">
                 <div class="stat-value" id="completedCount">0</div>
-                <div class="stat-label">Completed</div>
+                <div class="stat-label">Done</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="streakCount">0</div>
-                <div class="stat-label">Day Streak</div>
+                <div class="stat-label">Streak</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="completionRate">0%</div>
-                <div class="stat-label">Completion</div>
+                <div class="stat-label">Progress</div>
             </div>
         </div>
         
         <div class="sync-status" id="syncStatus">
-            <div>Shared Habit Tracker - Everyone sees the same data</div>
+            <div>shared space • everyone sees the same stuff</div>
             <div class="online-indicator">
                 <div class="online-dot"></div>
-                <span>Live updates enabled</span>
+                <span>live updates</span>
             </div>
         </div>
     </header>
     
     <div class="habits-container">
         <div class="section-title">
-            Today's Shared Habits
-            <span id="habitsCount">0 habits</span>
+            Today's
+            <button class="edit-toggle" id="editToggle">edit</button>
+        </div>
+        
+        <div class="edit-mode" id="editMode" style="display: none;">
+            ✏️ Edit mode - tap × to remove stuff
         </div>
         
         <div class="habits-list" id="habitsList">
@@ -366,9 +552,9 @@
         </div>
         
         <div class="empty-state" id="emptyState">
-            <div class="empty-icon">👥</div>
-            <div class="empty-text">No shared habits yet. Add the first one!</div>
-            <button class="empty-button" id="emptyAddButton">Add First Habit</button>
+            <div class="empty-icon">📝</div>
+            <div class="empty-text">nothing here yet<br>add the first thing</div>
+            <button class="empty-button" id="emptyAddButton">add first thing</button>
         </div>
     </div>
     
@@ -376,44 +562,55 @@
     
     <div class="modal" id="addHabitModal">
         <div class="modal-content">
-            <div class="modal-title">Add Shared Habit</div>
+            <div class="modal-title">add new thing</div>
             <div class="form-group">
-                <label for="habitName">Habit Name</label>
-                <input type="text" id="habitName" placeholder="e.g. Team Morning Standup">
+                <label for="habitName">What do you want to track?</label>
+                <input type="text" id="habitName" placeholder="read a book, drink water, etc.">
             </div>
             <div class="form-group">
-                <label for="habitCategory">Category</label>
-                <select id="habitCategory">
-                    <option value="health">Health & Fitness</option>
-                    <option value="productivity">Productivity</option>
-                    <option value="mindfulness">Mindfulness</option>
-                    <option value="learning">Learning</option>
-                    <option value="personal">Personal</option>
-                </select>
+                <label>Pick an emoji</label>
+                <div class="emoji-picker" id="emojiPicker">
+                    <div class="emoji-option">📚</div>
+                    <div class="emoji-option">💧</div>
+                    <div class="emoji-option">🏃</div>
+                    <div class="emoji-option">🎵</div>
+                    <div class="emoji-option">✍️</div>
+                    <div class="emoji-option">🧘</div>
+                    <div class="emoji-option">🍎</div>
+                    <div class="emoji-option">💤</div>
+                    <div class="emoji-option">🎨</div>
+                    <div class="emoji-option">🚶</div>
+                    <div class="emoji-option">📱</div>
+                    <div class="emoji-option">☕</div>
+                </div>
             </div>
             <div class="form-group">
-                <label for="habitFrequency">Frequency</label>
-                <select id="habitFrequency">
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="weekdays">Weekdays</option>
+                <label for="habitDuration">How long to keep this?</label>
+                <select id="habitDuration">
+                    <option value="1">Just today</option>
+                    <option value="7">One week</option>
+                    <option value="30">One month</option>
+                    <option value="forever">Keep forever</option>
+                    <option value="weekdays">Only weekdays</option>
+                    <option value="weekends">Only weekends</option>
                 </select>
             </div>
             <div class="button-group">
-                <button class="btn btn-cancel" id="cancelButton">Cancel</button>
-                <button class="btn btn-save" id="saveButton">Save</button>
+                <button class="btn btn-cancel" id="cancelButton">cancel</button>
+                <button class="btn btn-save" id="saveButton">save</button>
             </div>
         </div>
     </div>
 
     <script>
-        // SHARED DATABASE CONFIG - Everyone uses the same data
+        // SHARED DATABASE CONFIG
         const SHARED_BIN_ID = '6907214c43b1c97be9936c40';
         const SHARED_MASTER_KEY = '$2a$10$/rOhg7dsrXZ8kGYfHtXC0.fDFaG8Ai1OX.Grdv93QAozKS.3VSg0O';
         
         let habits = [];
-        let lastUpdateTime = 0;
         let isOnline = true;
+        let editMode = false;
+        let selectedEmoji = '📚';
 
         // DOM elements
         const habitsList = document.getElementById('habitsList');
@@ -423,8 +620,7 @@
         const cancelButton = document.getElementById('cancelButton');
         const saveButton = document.getElementById('saveButton');
         const habitNameInput = document.getElementById('habitName');
-        const habitCategoryInput = document.getElementById('habitCategory');
-        const habitFrequencyInput = document.getElementById('habitFrequency');
+        const habitDurationInput = document.getElementById('habitDuration');
         const emptyState = document.getElementById('emptyState');
         const completedCount = document.getElementById('completedCount');
         const streakCount = document.getElementById('streakCount');
@@ -432,44 +628,59 @@
         const habitsCount = document.getElementById('habitsCount');
         const currentDate = document.getElementById('currentDate');
         const syncStatus = document.getElementById('syncStatus');
+        const editToggle = document.getElementById('editToggle');
+        const editModeDiv = document.getElementById('editMode');
+        const emojiPicker = document.getElementById('emojiPicker');
 
         // Set current date
         const now = new Date();
         const options = { weekday: 'long', month: 'short', day: 'numeric' };
         currentDate.textContent = now.toLocaleDateString('en-US', options);
 
+        // Emoji picker
+        emojiPicker.addEventListener('click', (e) => {
+            if (e.target.classList.contains('emoji-option')) {
+                document.querySelectorAll('.emoji-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                e.target.classList.add('selected');
+                selectedEmoji = e.target.textContent;
+            }
+        });
+
+        // Edit mode toggle
+        editToggle.addEventListener('click', () => {
+            editMode = !editMode;
+            document.body.classList.toggle('edit-mode-active', editMode);
+            editModeDiv.style.display = editMode ? 'block' : 'none';
+            editToggle.textContent = editMode ? 'done' : 'edit';
+        });
+
         // Shared Database Service
         class SharedDatabase {
             static async loadHabits() {
                 try {
-                    console.log('Loading shared habits...');
                     const response = await fetch(`https://api.jsonbin.io/v3/b/${SHARED_BIN_ID}/latest`, {
                         headers: {
                             'X-Master-Key': SHARED_MASTER_KEY
                         }
                     });
                     
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     
                     const data = await response.json();
-                    console.log('Loaded shared data:', data);
-                    
-                    // Return habits array or empty array if none
                     return data.record?.habits || [];
                     
                 } catch (error) {
                     console.error('Failed to load shared habits:', error);
                     isOnline = false;
-                    updateSyncStatus('Offline - Cannot load shared data');
+                    updateSyncStatus('offline - cant load data');
                     return [];
                 }
             }
             
             static async saveHabits(habitsToSave) {
                 try {
-                    console.log('Saving shared habits...');
                     const response = await fetch(`https://api.jsonbin.io/v3/b/${SHARED_BIN_ID}`, {
                         method: 'PUT',
                         headers: {
@@ -478,25 +689,20 @@
                         },
                         body: JSON.stringify({
                             habits: habitsToSave,
-                            lastUpdated: new Date().toISOString(),
-                            totalUsers: 'shared'
+                            lastUpdated: new Date().toISOString()
                         })
                     });
                     
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     
-                    const result = await response.json();
-                    console.log('Save successful:', result);
                     isOnline = true;
-                    updateSyncStatus('Saved to shared database');
-                    return result;
+                    updateSyncStatus('saved to shared space');
+                    return await response.json();
                     
                 } catch (error) {
                     console.error('Failed to save shared habits:', error);
                     isOnline = false;
-                    updateSyncStatus('Offline - Save failed');
+                    updateSyncStatus('offline - save failed');
                     throw error;
                 }
             }
@@ -506,35 +712,48 @@
             syncStatus.innerHTML = `
                 <div>${message}</div>
                 <div class="online-indicator">
-                    <div class="online-dot" style="background: ${isOnline ? '#34c759' : '#ff3b30'}"></div>
-                    <span>${isOnline ? 'Live updates' : 'Offline mode'}</span>
+                    <div class="online-dot" style="background: ${isOnline ? '#4ecdc4' : '#ff6b6b'}"></div>
+                    <span>${isOnline ? 'live updates' : 'offline mode'}</span>
                 </div>
             `;
         }
 
+        // Check if habit is expired
+        function isHabitExpired(habit) {
+            if (habit.duration === 'forever') return false;
+            if (habit.duration === 'weekdays') return [0, 6].includes(now.getDay()); // Sunday=0, Saturday=6
+            if (habit.duration === 'weekends') return ![0, 6].includes(now.getDay());
+            
+            const created = new Date(habit.createdAt);
+            const daysSinceCreation = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+            return daysSinceCreation >= parseInt(habit.duration);
+        }
+
         // Load shared habits
         async function loadSharedHabits() {
-            updateSyncStatus('Loading shared habits...');
-            const sharedHabits = await SharedDatabase.loadHabits();
+            updateSyncStatus('loading shared stuff...');
+            let sharedHabits = await SharedDatabase.loadHabits();
+            
+            // Filter out expired habits
+            sharedHabits = sharedHabits.filter(habit => !isHabitExpired(habit));
+            
             habits = sharedHabits;
-            lastUpdateTime = Date.now();
             renderHabits();
             
             if (isOnline) {
-                updateSyncStatus('Connected to shared database');
+                updateSyncStatus('connected to shared space');
             }
         }
 
         // Save shared habits
         async function saveSharedHabits() {
             if (!isOnline) {
-                updateSyncStatus('Offline - Cannot save');
+                updateSyncStatus('offline - cant save');
                 return;
             }
             
-            updateSyncStatus('Saving to shared database...');
+            updateSyncStatus('saving...');
             await SharedDatabase.saveHabits(habits);
-            lastUpdateTime = Date.now();
         }
 
         // Render habits
@@ -543,7 +762,7 @@
             
             if (habits.length === 0) {
                 emptyState.style.display = 'block';
-                habitsCount.textContent = '0 habits';
+                habitsCount.textContent = '0 things';
                 completedCount.textContent = '0';
                 streakCount.textContent = '0';
                 completionRate.textContent = '0%';
@@ -551,7 +770,7 @@
             }
             
             emptyState.style.display = 'none';
-            habitsCount.textContent = `${habits.length} ${habits.length === 1 ? 'habit' : 'habits'}`;
+            habitsCount.textContent = `${habits.length} ${habits.length === 1 ? 'thing' : 'things'}`;
             
             const completed = habits.filter(habit => habit.completed).length;
             const total = habits.length;
@@ -564,16 +783,20 @@
             
             habits.forEach(habit => {
                 const habitCard = document.createElement('div');
-                habitCard.className = 'habit-card';
+                habitCard.className = `habit-card ${isHabitExpired(habit) ? 'expired-habit' : ''}`;
+                
+                const durationText = getDurationText(habit.duration);
+                
                 habitCard.innerHTML = `
-                    <div class="habit-icon" style="background-color: ${habit.color}">
-                        ${getCategoryIcon(habit.category)}
-                    </div>
+                    <div class="habit-emoji">${habit.emoji}</div>
                     <div class="habit-info">
                         <div class="habit-name">${habit.name}</div>
-                        <div class="habit-streak">${habit.streak} day streak • Shared</div>
+                        <div class="habit-meta">
+                            <span class="habit-streak">${habit.streak} days</span>
+                            <span class="habit-duration">${durationText}</span>
+                        </div>
                         <div class="progress-container">
-                            <div class="progress-bar" style="width: ${(habit.streak / 21) * 100}%; background-color: ${habit.color}"></div>
+                            <div class="progress-bar" style="width: ${(habit.streak / 21) * 100}%"></div>
                         </div>
                     </div>
                     <div class="habit-check ${habit.completed ? 'checked' : ''}" data-habit-id="${habit.id}">
@@ -584,7 +807,7 @@
                 habitsList.appendChild(habitCard);
             });
             
-            // Add event listeners for checkboxes and delete buttons
+            // Add event listeners
             document.querySelectorAll('.habit-check').forEach(check => {
                 check.addEventListener('click', (e) => {
                     const habitId = parseInt(e.target.dataset.habitId);
@@ -600,14 +823,21 @@
             });
         }
 
-        function getCategoryIcon(category) {
-            const icons = { health: '💪', productivity: '📊', mindfulness: '🧘', learning: '📚', personal: '🌟' };
-            return icons[category] || '✅';
+        function getDurationText(duration) {
+            switch(duration) {
+                case '1': return 'today only';
+                case '7': return '1 week';
+                case '30': return '1 month';
+                case 'forever': return 'forever';
+                case 'weekdays': return 'weekdays';
+                case 'weekends': return 'weekends';
+                default: return duration + ' days';
+            }
         }
 
         function toggleHabitCompletion(id) {
             const habit = habits.find(h => h.id === id);
-            if (habit) {
+            if (habit && !isHabitExpired(habit)) {
                 habit.completed = !habit.completed;
                 if (habit.completed) {
                     habit.streak += 1;
@@ -620,7 +850,7 @@
         }
 
         function deleteHabit(id) {
-            if (confirm('Are you sure you want to delete this habit? Everyone will see it removed.')) {
+            if (editMode) {
                 habits = habits.filter(habit => habit.id !== id);
                 renderHabits();
                 saveSharedHabits();
@@ -630,8 +860,12 @@
         function showAddHabitModal() {
             addHabitModal.style.display = 'flex';
             habitNameInput.value = '';
-            habitCategoryInput.value = 'health';
-            habitFrequencyInput.value = 'daily';
+            habitDurationInput.value = '7';
+            selectedEmoji = '📚';
+            document.querySelectorAll('.emoji-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelector('.emoji-option').classList.add('selected');
         }
 
         function hideAddHabitModal() {
@@ -642,16 +876,17 @@
             const name = habitNameInput.value.trim();
             if (!name) return;
             
-            const colors = ['#ff9f43', '#54a0ff', '#5f27cd', '#00d2d3', '#ff6b6b', '#48dbfb', '#1dd1a1'];
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#fd79a8', '#a29bfe'];
+            
             const newHabit = {
                 id: Date.now(),
                 name,
-                category: habitCategoryInput.value,
-                frequency: habitFrequencyInput.value,
+                emoji: selectedEmoji,
+                duration: habitDurationInput.value,
                 streak: 0,
                 completed: false,
                 color: colors[Math.floor(Math.random() * colors.length)],
-                createdBy: 'shared-user'
+                createdAt: new Date().toISOString()
             };
             
             habits.push(newHabit);
@@ -660,18 +895,26 @@
             saveSharedHabits();
         }
 
-        // Auto-refresh every 10 seconds to get updates from other users
+        // Auto-refresh every 10 seconds
         setInterval(async () => {
             if (isOnline) {
-                const sharedHabits = await SharedDatabase.loadHabits();
-                // Only update if data has changed
+                let sharedHabits = await SharedDatabase.loadHabits();
+                sharedHabits = sharedHabits.filter(habit => !isHabitExpired(habit));
+                
                 if (JSON.stringify(sharedHabits) !== JSON.stringify(habits)) {
                     habits = sharedHabits;
                     renderHabits();
-                    updateSyncStatus('Live - Updated with changes from others');
+                    updateSyncStatus('live - updated with changes');
                 }
             }
         }, 10000);
+
+        // Clean expired habits on load
+        setInterval(() => {
+            habits = habits.filter(habit => !isHabitExpired(habit));
+            renderHabits();
+            saveSharedHabits();
+        }, 60000); // Check every minute
 
         // Event listeners
         addButton.addEventListener('click', showAddHabitModal);
@@ -684,7 +927,7 @@
 
         // Initial load
         loadSharedHabits();
-        updateSyncStatus('Connecting to shared database...');
+        updateSyncStatus('connecting to shared space...');
     </script>
 </body>
 </html>
