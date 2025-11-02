@@ -397,33 +397,32 @@
             border-color: #4ecdc4;
         }
         
-        .emoji-picker {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 8px;
-            margin-top: 8px;
+        .emoji-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
         
-        .emoji-option {
-            padding: 10px;
+        .emoji-preview {
+            width: 40px;
+            height: 40px;
             border: 2px solid #e9ecef;
             border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background: white;
-            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            background: #f8f9fa;
         }
         
-        .emoji-option:hover {
-            border-color: #4ecdc4;
-            transform: scale(1.1);
+        .emoji-input {
+            flex: 1;
         }
         
-        .emoji-option.selected {
-            border-color: #4ecdc4;
-            background: #4ecdc4;
-            color: white;
+        .emoji-suggestions {
+            font-size: 11px;
+            color: #6c757d;
+            margin-top: 5px;
         }
         
         .button-group {
@@ -568,29 +567,20 @@
                 <input type="text" id="habitName" placeholder="read a book, drink water, etc.">
             </div>
             <div class="form-group">
-                <label>Pick an emoji</label>
-                <div class="emoji-picker" id="emojiPicker">
-                    <div class="emoji-option">📚</div>
-                    <div class="emoji-option">💧</div>
-                    <div class="emoji-option">🏃</div>
-                    <div class="emoji-option">🎵</div>
-                    <div class="emoji-option">✍️</div>
-                    <div class="emoji-option">🧘</div>
-                    <div class="emoji-option">🍎</div>
-                    <div class="emoji-option">💤</div>
-                    <div class="emoji-option">🎨</div>
-                    <div class="emoji-option">🚶</div>
-                    <div class="emoji-option">📱</div>
-                    <div class="emoji-option">☕</div>
+                <label for="habitEmoji">Pick an emoji</label>
+                <div class="emoji-input-container">
+                    <div class="emoji-preview" id="emojiPreview">📚</div>
+                    <input type="text" id="habitEmoji" class="emoji-input" placeholder="type any emoji..." maxlength="2">
+                </div>
+                <div class="emoji-suggestions">
+                    try: 😊 🎉 📚 💪 🎵 🍕 ☕ 🎨 🏃 ✨
                 </div>
             </div>
             <div class="form-group">
                 <label for="habitDuration">How long to keep this?</label>
                 <select id="habitDuration">
-                    <option value="1">Just today</option>
-                    <option value="7">One week</option>
-                    <option value="30">One month</option>
                     <option value="forever">Keep forever</option>
+                    <option value="1">Just today</option>
                     <option value="weekdays">Only weekdays</option>
                     <option value="weekends">Only weekends</option>
                 </select>
@@ -610,7 +600,6 @@
         let habits = [];
         let isOnline = true;
         let editMode = false;
-        let selectedEmoji = '📚';
 
         // DOM elements
         const habitsList = document.getElementById('habitsList');
@@ -620,7 +609,9 @@
         const cancelButton = document.getElementById('cancelButton');
         const saveButton = document.getElementById('saveButton');
         const habitNameInput = document.getElementById('habitName');
+        const habitEmojiInput = document.getElementById('habitEmoji');
         const habitDurationInput = document.getElementById('habitDuration');
+        const emojiPreview = document.getElementById('emojiPreview');
         const emptyState = document.getElementById('emptyState');
         const completedCount = document.getElementById('completedCount');
         const streakCount = document.getElementById('streakCount');
@@ -630,22 +621,15 @@
         const syncStatus = document.getElementById('syncStatus');
         const editToggle = document.getElementById('editToggle');
         const editModeDiv = document.getElementById('editMode');
-        const emojiPicker = document.getElementById('emojiPicker');
 
         // Set current date
         const now = new Date();
         const options = { weekday: 'long', month: 'short', day: 'numeric' };
         currentDate.textContent = now.toLocaleDateString('en-US', options);
 
-        // Emoji picker
-        emojiPicker.addEventListener('click', (e) => {
-            if (e.target.classList.contains('emoji-option')) {
-                document.querySelectorAll('.emoji-option').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
-                e.target.classList.add('selected');
-                selectedEmoji = e.target.textContent;
-            }
+        // Emoji input handler
+        habitEmojiInput.addEventListener('input', (e) => {
+            emojiPreview.textContent = e.target.value || '📚';
         });
 
         // Edit mode toggle
@@ -826,8 +810,6 @@
         function getDurationText(duration) {
             switch(duration) {
                 case '1': return 'today only';
-                case '7': return '1 week';
-                case '30': return '1 month';
                 case 'forever': return 'forever';
                 case 'weekdays': return 'weekdays';
                 case 'weekends': return 'weekends';
@@ -860,12 +842,9 @@
         function showAddHabitModal() {
             addHabitModal.style.display = 'flex';
             habitNameInput.value = '';
-            habitDurationInput.value = '7';
-            selectedEmoji = '📚';
-            document.querySelectorAll('.emoji-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            document.querySelector('.emoji-option').classList.add('selected');
+            habitEmojiInput.value = '📚';
+            emojiPreview.textContent = '📚';
+            habitDurationInput.value = 'forever';
         }
 
         function hideAddHabitModal() {
@@ -874,14 +853,19 @@
 
         function addNewHabit() {
             const name = habitNameInput.value.trim();
-            if (!name) return;
+            const emoji = habitEmojiInput.value.trim() || '📚';
+            
+            if (!name) {
+                alert('Please enter a name for your habit!');
+                return;
+            }
             
             const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#fd79a8', '#a29bfe'];
             
             const newHabit = {
                 id: Date.now(),
                 name,
-                emoji: selectedEmoji,
+                emoji: emoji,
                 duration: habitDurationInput.value,
                 streak: 0,
                 completed: false,
