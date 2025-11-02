@@ -594,7 +594,6 @@
         const completedCount = document.getElementById('completedCount');
         const streakCount = document.getElementById('streakCount');
         const completionRate = document.getElementById('completionRate');
-        const habitsCount = document.getElementById('habitsCount');
         const currentDate = document.getElementById('currentDate');
         const syncStatus = document.getElementById('syncStatus');
         const editToggle = document.getElementById('editToggle');
@@ -618,32 +617,23 @@
             editToggle.textContent = editMode ? 'done' : 'edit';
         });
 
-        // Shared Database Service - FIXED VERSION
+        // SIMPLIFIED Database Service - FIXED
         class SharedDatabase {
             static async loadHabits() {
                 try {
-                    console.log('Loading habits from JSONBin...');
                     const response = await fetch(`https://api.jsonbin.io/v3/b/${SHARED_BIN_ID}/latest`, {
                         headers: {
                             'X-Master-Key': SHARED_MASTER_KEY
                         }
                     });
                     
-                    if (!response.ok) {
-                        console.error('Response not OK:', response.status, response.statusText);
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
+                    if (!response.ok) throw new Error('Failed to load');
                     
                     const data = await response.json();
-                    console.log('Loaded data:', data);
-                    
-                    // Handle case where record might be null or undefined
-                    const habits = data.record?.habits || [];
-                    console.log('Parsed habits:', habits);
-                    return habits;
+                    return data.record?.habits || [];
                     
                 } catch (error) {
-                    console.error('Failed to load shared habits:', error);
+                    console.error('Failed to load:', error);
                     isOnline = false;
                     updateSyncStatus('offline - cant load data');
                     return [];
@@ -652,7 +642,6 @@
             
             static async saveHabits(habitsToSave) {
                 try {
-                    console.log('Saving habits to JSONBin:', habitsToSave);
                     const response = await fetch(`https://api.jsonbin.io/v3/b/${SHARED_BIN_ID}`, {
                         method: 'PUT',
                         headers: {
@@ -665,22 +654,17 @@
                         })
                     });
                     
-                    if (!response.ok) {
-                        console.error('Save response not OK:', response.status, response.statusText);
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
+                    if (!response.ok) throw new Error('Failed to save');
                     
-                    const result = await response.json();
-                    console.log('Save successful:', result);
                     isOnline = true;
                     updateSyncStatus('saved to shared space');
-                    return result;
+                    return true;
                     
                 } catch (error) {
-                    console.error('Failed to save shared habits:', error);
+                    console.error('Failed to save:', error);
                     isOnline = false;
                     updateSyncStatus('offline - save failed');
-                    throw error;
+                    return false;
                 }
             }
         }
@@ -698,7 +682,7 @@
         // Check if habit is expired
         function isHabitExpired(habit) {
             if (habit.duration === 'forever') return false;
-            if (habit.duration === 'weekdays') return [0, 6].includes(now.getDay()); // Sunday=0, Saturday=6
+            if (habit.duration === 'weekdays') return [0, 6].includes(now.getDay());
             if (habit.duration === 'weekends') return ![0, 6].includes(now.getDay());
             
             const created = new Date(habit.createdAt);
@@ -708,44 +692,31 @@
 
         // Load shared habits
         async function loadSharedHabits() {
-            updateSyncStatus('loading shared stuff...');
+            updateSyncStatus('loading...');
             let sharedHabits = await SharedDatabase.loadHabits();
             
-            // Filter out expired habits
             sharedHabits = sharedHabits.filter(habit => !isHabitExpired(habit));
-            
             habits = sharedHabits;
             renderHabits();
             
-            if (isOnline && habits.length > 0) {
+            if (isOnline) {
                 updateSyncStatus('connected to shared space');
             }
         }
 
-        // Save shared habits - FIXED VERSION
+        // Save shared habits - SIMPLIFIED
         async function saveSharedHabits() {
-            if (!isOnline) {
-                updateSyncStatus('offline - cant save');
-                return false;
-            }
-            
+            if (!isOnline) return false;
             updateSyncStatus('saving...');
-            try {
-                await SharedDatabase.saveHabits(habits);
-                return true;
-            } catch (error) {
-                console.error('Save failed:', error);
-                return false;
-            }
+            return await SharedDatabase.saveHabits(habits);
         }
 
-        // Render habits
+        // Render habits - FIXED: Removed habitsCount reference
         function renderHabits() {
             habitsList.innerHTML = '';
             
             if (habits.length === 0) {
                 emptyState.style.display = 'block';
-                habitsCount.textContent = '0 things';
                 completedCount.textContent = '0';
                 streakCount.textContent = '0';
                 completionRate.textContent = '0%';
@@ -753,7 +724,6 @@
             }
             
             emptyState.style.display = 'none';
-            habitsCount.textContent = `${habits.length} ${habits.length === 1 ? 'thing' : 'things'}`;
             
             const completed = habits.filter(habit => habit.completed).length;
             const total = habits.length;
@@ -850,17 +820,15 @@
             addHabitModal.style.display = 'none';
         }
 
-        // FIXED: Save button functionality
+        // FIXED: Simple save function
         async function addNewHabit() {
             const name = habitNameInput.value.trim();
             const emoji = habitEmojiInput.value.trim() || '📚';
             
             if (!name) {
-                alert('Please enter a name for your habit!');
+                alert('Please enter a name!');
                 return;
             }
-            
-            const colors = ['#8b5cf6', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#06b6d4'];
             
             const newHabit = {
                 id: Date.now(),
@@ -869,7 +837,6 @@
                 duration: habitDurationInput.value,
                 streak: 0,
                 completed: false,
-                color: colors[Math.floor(Math.random() * colors.length)],
                 createdAt: new Date().toISOString()
             };
             
@@ -877,14 +844,11 @@
             renderHabits();
             hideAddHabitModal();
             
-            // Save to cloud and handle result
-            const saved = await saveSharedHabits();
-            if (!saved) {
-                alert('Note: Could not save to cloud, but habit was added locally.');
-            }
+            // Save to cloud
+            await saveSharedHabits();
         }
 
-        // Auto-refresh every 10 seconds
+        // Auto-refresh
         setInterval(async () => {
             if (isOnline) {
                 let sharedHabits = await SharedDatabase.loadHabits();
@@ -893,35 +857,21 @@
                 if (JSON.stringify(sharedHabits) !== JSON.stringify(habits)) {
                     habits = sharedHabits;
                     renderHabits();
-                    updateSyncStatus('live - updated with changes');
                 }
             }
         }, 10000);
 
-        // Clean expired habits every minute
-        setInterval(() => {
-            const beforeCount = habits.length;
-            habits = habits.filter(habit => !isHabitExpired(habit));
-            if (habits.length !== beforeCount) {
-                renderHabits();
-                saveSharedHabits();
-            }
-        }, 60000);
-
-        // Event listeners - FIXED: Proper event binding
+        // Event listeners
         addButton.addEventListener('click', showAddHabitModal);
         emptyAddButton.addEventListener('click', showAddHabitModal);
         cancelButton.addEventListener('click', hideAddHabitModal);
         saveButton.addEventListener('click', addNewHabit);
-        
-        // Close modal when clicking outside
         addHabitModal.addEventListener('click', (e) => {
             if (e.target === addHabitModal) hideAddHabitModal();
         });
 
         // Initial load
         loadSharedHabits();
-        updateSyncStatus('connecting to shared space...');
     </script>
 </body>
 </html>
