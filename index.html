@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grit - Habit Tracker</title>
+    <title>Grit - Synced Habit Tracker</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,7 @@
             margin: 0 auto;
             min-height: 100vh;
             position: relative;
-            padding-bottom: 80px;
+            padding-bottom: 30px;
         }
         
         header {
@@ -64,6 +64,33 @@
         
         .stat-label {
             font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .sync-status {
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: #8e8e93;
+            background: rgba(255, 255, 255, 0.5);
+            margin: 10px 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .sync-button {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .sync-button:active {
             opacity: 0.8;
         }
         
@@ -176,37 +203,6 @@
             z-index: 10;
         }
         
-        .tab-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            border-top: 1px solid #e5e5ea;
-            max-width: 414px;
-            margin: 0 auto;
-        }
-        
-        .tab-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 12px;
-            color: #8e8e93;
-        }
-        
-        .tab-item.active {
-            color: #007aff;
-        }
-        
-        .tab-icon {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-        
         .modal {
             display: none;
             position: fixed;
@@ -303,67 +299,75 @@
             border-radius: 10px;
             font-weight: 600;
         }
+        
+        .export-import {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .export-button, .import-button {
+            background: #f5f5f7;
+            border: 1px solid #e5e5ea;
+            border-radius: 10px;
+            padding: 8px 15px;
+            font-size: 12px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <header>
         <div class="header-content">
-            <h1>Grit</h1>
+            <h1>Habitos</h1>
             <div class="date" id="currentDate">Monday, Oct 16</div>
         </div>
         <div class="stats">
             <div class="stat-item">
-                <div class="stat-value" id="completedCount">3</div>
+                <div class="stat-value" id="completedCount">0</div>
                 <div class="stat-label">Completed</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="streakCount">12</div>
+                <div class="stat-value" id="streakCount">0</div>
                 <div class="stat-label">Day Streak</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="completionRate">75%</div>
+                <div class="stat-value" id="completionRate">0%</div>
                 <div class="stat-label">Completion</div>
             </div>
+        </div>
+        
+        <div class="sync-status" id="syncStatus">
+            <span>Last synced: <span id="lastSyncTime">Never</span></span>
+            <button class="sync-button" id="manualSync">Sync Now</button>
         </div>
     </header>
     
     <div class="habits-container">
         <div class="section-title">
             Today's Habits
-            <span id="habitsCount">4 habits</span>
+            <span id="habitsCount">0 habits</span>
         </div>
         
         <div class="habits-list" id="habitsList">
             <!-- Habit cards will be inserted here by JavaScript -->
         </div>
         
-        <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-state" id="emptyState">
             <div class="empty-icon">📝</div>
             <div class="empty-text">No habits yet. Start building good habits today!</div>
             <button class="empty-button" id="emptyAddButton">Add Your First Habit</button>
+            
+            <div class="export-import">
+                <button class="export-button" id="exportButton">Export Data</button>
+                <button class="import-button" id="importButton">Import Data</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;">
+            </div>
         </div>
     </div>
     
     <button class="add-button" id="addButton">+</button>
-    
-    <div class="tab-bar">
-        <div class="tab-item active">
-            <div class="tab-icon">📊</div>
-            <div>Today</div>
-        </div>
-        <div class="tab-item">
-            <div class="tab-icon">📅</div>
-            <div>Calendar</div>
-        </div>
-        <div class="tab-item">
-            <div class="tab-icon">📈</div>
-            <div>Stats</div>
-        </div>
-        <div class="tab-item">
-            <div class="tab-icon">⚙️</div>
-            <div>Settings</div>
-        </div>
-    </div>
     
     <div class="modal" id="addHabitModal">
         <div class="modal-content">
@@ -398,13 +402,15 @@
     </div>
 
     <script>
-        // Sample habit data
-        let habits = [
-            { id: 1, name: "Morning Meditation", category: "mindfulness", streak: 7, completed: true, color: "#ff9f43" },
-            { id: 2, name: "Exercise", category: "health", streak: 14, completed: true, color: "#54a0ff" },
-            { id: 3, name: "Read 20 pages", category: "learning", streak: 5, completed: true, color: "#5f27cd" },
-            { id: 4, name: "No Sugar", category: "health", streak: 3, completed: false, color: "#00d2d3" }
-        ];
+        // Enhanced with cloud sync capability
+        let habits = [];
+        
+        // Generate a user ID that persists across sessions
+        let USER_ID = localStorage.getItem('grit_user_id');
+        if (!USER_ID) {
+            USER_ID = 'user_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('grit_user_id', USER_ID);
+        }
         
         // DOM elements
         const habitsList = document.getElementById('habitsList');
@@ -422,11 +428,118 @@
         const completionRate = document.getElementById('completionRate');
         const habitsCount = document.getElementById('habitsCount');
         const currentDate = document.getElementById('currentDate');
+        const lastSyncTime = document.getElementById('lastSyncTime');
+        const manualSync = document.getElementById('manualSync');
+        const exportButton = document.getElementById('exportButton');
+        const importButton = document.getElementById('importButton');
+        const importFile = document.getElementById('importFile');
         
         // Set current date
         const now = new Date();
         const options = { weekday: 'long', month: 'short', day: 'numeric' };
         currentDate.textContent = now.toLocaleDateString('en-US', options);
+        
+        // Simulated cloud storage using localStorage (for demo purposes)
+        // In a real app, this would be an actual API call
+        class CloudStorage {
+            static async saveHabits(habits) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        // Simulate API call by storing in localStorage with user ID
+                        localStorage.setItem(`grit_habits_${USER_ID}`, JSON.stringify({
+                            habits: habits,
+                            lastUpdated: new Date().toISOString()
+                        }));
+                        resolve({ success: true });
+                    }, 500); // Simulate network delay
+                });
+            }
+            
+            static async loadHabits() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        // Simulate API call by loading from localStorage
+                        const stored = localStorage.getItem(`grit_habits_${USER_ID}`);
+                        if (stored) {
+                            const data = JSON.parse(stored);
+                            resolve(data.habits || []);
+                        } else {
+                            resolve([]);
+                        }
+                    }, 300); // Simulate network delay
+                });
+            }
+        }
+        
+        // Load habits from cloud
+        async function loadHabitsFromCloud() {
+            try {
+                showSyncStatus('Syncing...');
+                const cloudHabits = await CloudStorage.loadHabits();
+                
+                if (cloudHabits && cloudHabits.length > 0) {
+                    habits = cloudHabits;
+                    showSyncStatus('Synced from cloud');
+                } else {
+                    // Fallback to local storage
+                    const localHabits = localStorage.getItem('grit_habits_local');
+                    if (localHabits) {
+                        habits = JSON.parse(localHabits);
+                        showSyncStatus('Loaded from local storage');
+                    } else {
+                        habits = [];
+                        showSyncStatus('No habits found');
+                    }
+                }
+                
+                updateSyncTime();
+                renderHabits();
+            } catch (error) {
+                console.error('Sync failed:', error);
+                showSyncStatus('Sync failed');
+                // Fallback to local storage
+                const localHabits = localStorage.getItem('grit_habits_local');
+                if (localHabits) {
+                    habits = JSON.parse(localHabits);
+                    renderHabits();
+                }
+            }
+        }
+        
+        // Save habits to cloud and localStorage
+        async function saveHabitsToCloud() {
+            try {
+                showSyncStatus('Saving...');
+                
+                // Save to local storage as backup
+                localStorage.setItem('grit_habits_local', JSON.stringify(habits));
+                
+                // Save to cloud
+                await CloudStorage.saveHabits(habits);
+                
+                showSyncStatus('Saved to cloud');
+                updateSyncTime();
+            } catch (error) {
+                console.error('Cloud save failed:', error);
+                showSyncStatus('Cloud save failed');
+                // Still update local storage
+                localStorage.setItem('grit_habits_local', JSON.stringify(habits));
+                updateSyncTime();
+            }
+        }
+        
+        function showSyncStatus(message) {
+            const syncStatus = document.getElementById('syncStatus');
+            syncStatus.innerHTML = `<span>${message}</span><button class="sync-button" id="manualSync">Sync Now</button>`;
+            
+            // Reattach event listener to the new button
+            document.getElementById('manualSync').addEventListener('click', manualSyncClick);
+        }
+        
+        function updateSyncTime() {
+            const now = new Date();
+            lastSyncTime.textContent = now.toLocaleTimeString();
+        }
         
         // Render habits
         function renderHabits() {
@@ -435,6 +548,9 @@
             if (habits.length === 0) {
                 emptyState.style.display = 'block';
                 habitsCount.textContent = '0 habits';
+                completedCount.textContent = '0';
+                streakCount.textContent = '0';
+                completionRate.textContent = '0%';
                 return;
             }
             
@@ -450,7 +566,7 @@
             completionRate.textContent = `${rate}%`;
             
             // Find the longest streak
-            const longestStreak = Math.max(...habits.map(habit => habit.streak));
+            const longestStreak = habits.length > 0 ? Math.max(...habits.map(habit => habit.streak)) : 0;
             streakCount.textContent = longestStreak;
             
             habits.forEach(habit => {
@@ -504,6 +620,7 @@
                     habit.streak = Math.max(0, habit.streak - 1);
                 }
                 renderHabits();
+                saveHabitsToCloud(); // Auto-save on change
             }
         }
         
@@ -532,7 +649,7 @@
             const randomColor = colors[Math.floor(Math.random() * colors.length)];
             
             const newHabit = {
-                id: habits.length + 1,
+                id: Date.now(), // Use timestamp for unique ID
                 name,
                 category,
                 frequency,
@@ -544,6 +661,51 @@
             habits.push(newHabit);
             renderHabits();
             hideAddHabitModal();
+            saveHabitsToCloud(); // Auto-save on change
+        }
+        
+        // Export habits to JSON file
+        function exportHabits() {
+            const data = JSON.stringify(habits, null, 2);
+            const blob = new Blob([data], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `grit-habits-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Import habits from JSON file
+        function importHabits(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedHabits = JSON.parse(e.target.result);
+                    if (Array.isArray(importedHabits)) {
+                        habits = importedHabits;
+                        renderHabits();
+                        saveHabitsToCloud();
+                        showSyncStatus('Data imported successfully');
+                    } else {
+                        showSyncStatus('Invalid file format');
+                    }
+                } catch (error) {
+                    showSyncStatus('Error importing file');
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset file input
+            importFile.value = '';
+        }
+        
+        // Manual sync click handler
+        function manualSyncClick() {
+            saveHabitsToCloud();
         }
         
         // Event listeners
@@ -551,6 +713,10 @@
         emptyAddButton.addEventListener('click', showAddHabitModal);
         cancelButton.addEventListener('click', hideAddHabitModal);
         saveButton.addEventListener('click', addNewHabit);
+        manualSync.addEventListener('click', manualSyncClick);
+        exportButton.addEventListener('click', exportHabits);
+        importButton.addEventListener('click', () => importFile.click());
+        importFile.addEventListener('change', importHabits);
         
         // Close modal when clicking outside
         addHabitModal.addEventListener('click', (e) => {
@@ -559,8 +725,15 @@
             }
         });
         
-        // Initial render
-        renderHabits();
+        // Auto-sync every 5 minutes
+        setInterval(() => {
+            if (habits.length > 0) {
+                saveHabitsToCloud();
+            }
+        }, 5 * 60 * 1000);
+        
+        // Initial load
+        loadHabitsFromCloud();
     </script>
 </body>
 </html>
