@@ -173,7 +173,7 @@
         .habits-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
         }
         
         .habit-card {
@@ -185,11 +185,49 @@
             transition: all 0.3s ease;
             border: 1px solid #333;
             position: relative;
+            cursor: grab;
+        }
+        
+        .habit-card:active {
+            cursor: grabbing;
         }
         
         .habit-card:hover {
             border-color: #8b5cf6;
             background: #222;
+        }
+        
+        .edit-mode-active .habit-card {
+            cursor: grab;
+        }
+        
+        .edit-mode-active .habit-card:active {
+            cursor: grabbing;
+        }
+        
+        .edit-mode-active .habit-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+            border: 2px dashed #8b5cf6;
+        }
+        
+        .edit-mode-active .habit-card.drag-over {
+            border-top: 2px solid #8b5cf6;
+        }
+        
+        .drag-handle {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            color: #6b7280;
+            cursor: grab;
+            display: none;
+        }
+        
+        .edit-mode-active .drag-handle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .habit-emoji {
@@ -524,7 +562,7 @@
         </div>
         
         <div class="edit-mode" id="editMode" style="display: none;">
-            ✏️ Edit mode - tap × to remove stuff
+            ✏️ Edit mode - drag to reorder, tap × to remove
         </div>
         
         <div class="habits-list" id="habitsList">
@@ -578,6 +616,7 @@
         let habits = [];
         let isOnline = true;
         let editMode = false;
+        let draggedItem = null;
 
         // DOM elements
         const habitsList = document.getElementById('habitsList');
@@ -615,9 +654,95 @@
             document.body.classList.toggle('edit-mode-active', editMode);
             editModeDiv.style.display = editMode ? 'block' : 'none';
             editToggle.textContent = editMode ? 'done' : 'edit';
+            renderHabits(); // Re-render to show/hide drag handles
         });
 
-        // SIMPLIFIED Database Service - FIXED
+        // Drag and drop functionality
+        function setupDragAndDrop() {
+            const habitCards = document.querySelectorAll('.habit-card');
+            
+            habitCards.forEach(card => {
+                // Remove existing event listeners to prevent duplicates
+                card.removeEventListener('dragstart', handleDragStart);
+                card.removeEventListener('dragover', handleDragOver);
+                card.removeEventListener('drop', handleDrop);
+                card.removeEventListener('dragend', handleDragEnd);
+                card.removeEventListener('dragenter', handleDragEnter);
+                card.removeEventListener('dragleave', handleDragLeave);
+                
+                // Add new event listeners
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragover', handleDragOver);
+                card.addEventListener('drop', handleDrop);
+                card.addEventListener('dragend', handleDragEnd);
+                card.addEventListener('dragenter', handleDragEnter);
+                card.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+
+        function handleDragStart(e) {
+            if (!editMode) return;
+            
+            draggedItem = this;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+            
+            setTimeout(() => {
+                this.classList.add('dragging');
+            }, 0);
+        }
+
+        function handleDragOver(e) {
+            if (!editMode) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            if (!editMode) return;
+            this.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            if (!editMode) return;
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            if (!editMode) return;
+            e.stopPropagation();
+            e.preventDefault();
+            
+            if (draggedItem !== this) {
+                const allCards = Array.from(document.querySelectorAll('.habit-card'));
+                const fromIndex = allCards.indexOf(draggedItem);
+                const toIndex = allCards.indexOf(this);
+                
+                // Reorder the habits array
+                const [movedHabit] = habits.splice(fromIndex, 1);
+                habits.splice(toIndex, 0, movedHabit);
+                
+                // Save the new order
+                saveSharedHabits();
+                renderHabits();
+            }
+            
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            if (!editMode) return;
+            
+            document.querySelectorAll('.habit-card').forEach(card => {
+                card.classList.remove('dragging');
+                card.classList.remove('drag-over');
+            });
+            
+            draggedItem = null;
+        }
+
+        // Shared Database Service
         class SharedDatabase {
             static async loadHabits() {
                 try {
@@ -704,14 +829,14 @@
             }
         }
 
-        // Save shared habits - SIMPLIFIED
+        // Save shared habits
         async function saveSharedHabits() {
             if (!isOnline) return false;
             updateSyncStatus('saving...');
             return await SharedDatabase.saveHabits(habits);
         }
 
-        // Render habits - FIXED: Removed habitsCount reference
+        // Render habits
         function renderHabits() {
             habitsList.innerHTML = '';
             
@@ -737,10 +862,12 @@
             habits.forEach(habit => {
                 const habitCard = document.createElement('div');
                 habitCard.className = `habit-card ${isHabitExpired(habit) ? 'expired-habit' : ''}`;
+                habitCard.draggable = editMode; // Only draggable in edit mode
                 
                 const durationText = getDurationText(habit.duration);
                 
                 habitCard.innerHTML = `
+                    <div class="drag-handle">⋮⋮</div>
                     <div class="habit-emoji">${habit.emoji}</div>
                     <div class="habit-info">
                         <div class="habit-name">${habit.name}</div>
@@ -760,7 +887,7 @@
                 habitsList.appendChild(habitCard);
             });
             
-            // Add event listeners
+            // Add event listeners for checkboxes and delete buttons
             document.querySelectorAll('.habit-check').forEach(check => {
                 check.addEventListener('click', (e) => {
                     const habitId = parseInt(e.target.dataset.habitId);
@@ -774,6 +901,11 @@
                     deleteHabit(habitId);
                 });
             });
+            
+            // Setup drag and drop if in edit mode
+            if (editMode) {
+                setupDragAndDrop();
+            }
         }
 
         function getDurationText(duration) {
@@ -820,7 +952,7 @@
             addHabitModal.style.display = 'none';
         }
 
-        // FIXED: Simple save function
+        // Save function
         async function addNewHabit() {
             const name = habitNameInput.value.trim();
             const emoji = habitEmojiInput.value.trim() || '📚';
