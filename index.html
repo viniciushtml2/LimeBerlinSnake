@@ -638,6 +638,7 @@
         let isOnline = true;
         let editMode = false;
         let draggedItem = null;
+        let lastResetDate = null;
 
         // DOM elements
         const habitsList = document.getElementById('habitsList');
@@ -660,10 +661,80 @@
         const refreshButton = document.getElementById('refreshButton');
         const editModeDiv = document.getElementById('editMode');
 
-        // Set current date
-        const now = new Date();
-        const options = { weekday: 'long', month: 'short', day: 'numeric' };
-        currentDate.textContent = now.toLocaleDateString('en-US', options);
+        // Get current Brazil time (BRT - Brasilia Time)
+        function getBrazilTime() {
+            // Brazil timezone is America/Sao_Paulo (UTC-3)
+            return new Date().toLocaleString("en-US", {timeZone: "America/Sao_Paulo"});
+        }
+
+        // Get current date in Brazil
+        function getBrazilDate() {
+            const brazilTime = new Date(getBrazilTime());
+            return brazilTime.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'short', 
+                day: 'numeric',
+                timeZone: "America/Sao_Paulo"
+            });
+        }
+
+        // Check if it's a new day in Brazil time
+        function isNewDayInBrazil() {
+            const todayBrazil = getBrazilDate();
+            
+            // If we haven't stored a reset date yet, set it and don't reset
+            if (!lastResetDate) {
+                lastResetDate = todayBrazil;
+                return false;
+            }
+            
+            // If the date has changed, it's a new day
+            if (lastResetDate !== todayBrazil) {
+                lastResetDate = todayBrazil;
+                return true;
+            }
+            
+            return false;
+        }
+
+        // Reset all checked habits at midnight Brazil time
+        function resetCheckedHabits() {
+            if (isNewDayInBrazil()) {
+                console.log('New day in Brazil - resetting checked habits');
+                
+                let changed = false;
+                habits.forEach(habit => {
+                    if (habit.completed) {
+                        habit.completed = false;
+                        changed = true;
+                    }
+                });
+                
+                if (changed) {
+                    renderHabits();
+                    saveSharedHabits();
+                    updateSyncStatus('new day - habits reset');
+                }
+            }
+        }
+
+        // Update date display with Brazil time
+        function updateBrazilDate() {
+            currentDate.textContent = getBrazilDate();
+        }
+
+        // Set up midnight reset checker
+        function setupMidnightReset() {
+            // Check every minute if it's a new day
+            setInterval(() => {
+                resetCheckedHabits();
+                updateBrazilDate(); // Keep date updated
+            }, 60000); // Check every minute
+            
+            // Initial check
+            resetCheckedHabits();
+            updateBrazilDate();
+        }
 
         // Emoji input handler
         habitEmojiInput.addEventListener('input', (e) => {
@@ -1024,6 +1095,7 @@
 
         // Initial load
         loadSharedHabits();
+        setupMidnightReset(); // Start the midnight reset checker
     </script>
 </body>
 </html>
