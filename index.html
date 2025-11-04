@@ -8,7 +8,6 @@
     <meta http-equiv='expires' content='0'> 
     <meta http-equiv='pragma' content='no-cache'>
     <style>
-        /* Your existing CSS styles remain exactly the same */
         * {
             margin: 0;
             padding: 0;
@@ -661,59 +660,49 @@
         const refreshButton = document.getElementById('refreshButton');
         const editModeDiv = document.getElementById('editMode');
 
-        // Get current Brazil time (BRT - Brasilia Time)
-        function getBrazilTime() {
-            return new Date().toLocaleString("en-US", {timeZone: "America/Sao_Paulo"});
+        // Get current LOCAL machine date as YYYY-MM-DD for comparison
+        function getLocalDateString() {
+            const now = new Date();
+            return now.toISOString().split('T')[0]; // YYYY-MM-DD format
         }
 
-        // Get current date in Brazil as YYYY-MM-DD for comparison
-        function getBrazilDateString() {
-            const brazilTime = new Date(getBrazilTime());
-            return brazilTime.toISOString().split('T')[0]; // YYYY-MM-DD format
-        }
-
-        // Get formatted Brazil date for display
-        function getBrazilDateDisplay() {
-            const brazilTime = new Date(getBrazilTime());
-            return brazilTime.toLocaleDateString('en-US', { 
+        // Get formatted LOCAL date for display
+        function getLocalDateDisplay() {
+            const now = new Date();
+            return now.toLocaleDateString('en-US', { 
                 weekday: 'long', 
                 month: 'short', 
-                day: 'numeric',
-                timeZone: "America/Sao_Paulo"
+                day: 'numeric'
             });
         }
 
         // Calculate days between two dates
         function getDaysBetweenDates(date1, date2) {
-            const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+            const oneDay = 24 * 60 * 60 * 1000;
             const firstDate = new Date(date1);
             const secondDate = new Date(date2);
             return Math.round(Math.abs((firstDate - secondDate) / oneDay));
         }
 
-        // Reset logic based on day comparison
+        // Reset logic based on day comparison using LOCAL time
         function performDayReset(lastRequestDate) {
-            const todayBrazil = getBrazilDateString();
+            const todayLocal = getLocalDateString();
             
             if (!lastRequestDate) {
-                // First time - just log today's date
-                console.log('First request - setting date to:', todayBrazil);
+                console.log('First request - setting date to:', todayLocal);
                 return { resetPerformed: false, message: 'first load' };
             }
             
-            const daysBetween = getDaysBetweenDates(lastRequestDate, todayBrazil);
+            const daysBetween = getDaysBetweenDates(lastRequestDate, todayLocal);
             
             if (daysBetween === 0) {
-                // Same day - do nothing
                 return { resetPerformed: false, message: 'same day' };
             }
             else if (daysBetween === 1) {
-                // Next day - reset checked boxes and delete "just today" tasks
                 console.log('Next day detected - resetting checked boxes and removing "just today" tasks');
                 
                 let changesMade = false;
                 
-                // Reset all checked habits
                 habits.forEach(habit => {
                     if (habit.completed) {
                         habit.completed = false;
@@ -721,7 +710,6 @@
                     }
                 });
                 
-                // Remove "just today" tasks
                 const initialLength = habits.length;
                 habits = habits.filter(habit => habit.duration !== '1');
                 const removedCount = initialLength - habits.length;
@@ -737,7 +725,6 @@
                 };
             }
             else {
-                // More than one day - reset checked boxes and set streaks to 0
                 console.log(`${daysBetween} days passed - resetting checked boxes and streaks to 0`);
                 
                 let changesMade = false;
@@ -769,9 +756,9 @@
             }
         }
 
-        // Update date display with Brazil time
-        function updateBrazilDate() {
-            currentDate.textContent = getBrazilDateDisplay();
+        // Update date display with LOCAL time
+        function updateLocalDate() {
+            currentDate.textContent = getLocalDateDisplay();
         }
 
         // Emoji input handler
@@ -875,7 +862,7 @@
             draggedItem = null;
         }
 
-        // Enhanced Shared Database Service with day tracking
+        // Shared Database Service with LOCAL day tracking
         class SharedDatabase {
             static async loadHabits() {
                 try {
@@ -891,7 +878,6 @@
                     const data = await response.json();
                     console.log('Loaded data successfully');
                     
-                    // Return both habits and metadata
                     return {
                         habits: data.record?.habits || [],
                         lastRequestDate: data.record?.lastRequestDate,
@@ -910,13 +896,11 @@
                 try {
                     console.log('Saving habits to JSONBin...');
                     const now = new Date();
-                    const brazilTime = new Date(getBrazilTime());
                     
                     const saveData = {
                         habits: habitsToSave,
-                        lastRequestDate: getBrazilDateString(),
+                        lastRequestDate: getLocalDateString(), // LOCAL date
                         lastRequestTime: now.toISOString(),
-                        lastBrazilTime: brazilTime.toISOString(),
                         resetInfo: resetInfo
                     };
                     
@@ -934,7 +918,7 @@
                     isOnline = true;
                     updateSyncStatus('saved to shared space');
                     
-                    console.log('Save successful with day tracking');
+                    console.log('Save successful with LOCAL day tracking');
                     return true;
                     
                 } catch (error) {
@@ -967,28 +951,25 @@
             return daysSinceCreation >= parseInt(habit.duration);
         }
 
-        // Load shared habits with day reset logic
+        // Load shared habits with LOCAL day reset logic
         async function loadSharedHabits() {
             updateSyncStatus('loading...');
             const { habits: sharedHabits, lastRequestDate } = await SharedDatabase.loadHabits();
             
-            // Filter out expired habits (non-day-based expiration)
             let filteredHabits = sharedHabits.filter(habit => !isHabitExpired(habit));
             
-            // Apply day-based reset logic
             const resetResult = performDayReset(lastRequestDate);
             
             if (resetResult.resetPerformed) {
                 console.log('Day reset performed:', resetResult.message);
                 updateSyncStatus(resetResult.message);
                 
-                // Save the reset state
                 await SharedDatabase.saveHabits(filteredHabits, resetResult);
             }
             
             habits = filteredHabits;
             renderHabits();
-            updateBrazilDate();
+            updateLocalDate();
             
             if (isOnline && !resetResult.resetPerformed) {
                 updateSyncStatus('loaded from shared space');
@@ -1146,4 +1127,13 @@
         addButton.addEventListener('click', showAddHabitModal);
         emptyAddButton.addEventListener('click', showAddHabitModal);
         cancelButton.addEventListener('click', hideAddHabitModal);
-        saveButton
+        saveButton.addEventListener('click', addNewHabit);
+        addHabitModal.addEventListener('click', (e) => {
+            if (e.target === addHabitModal) hideAddHabitModal();
+        });
+
+        // Initial load
+        loadSharedHabits();
+    </script>
+</body>
+</html>
