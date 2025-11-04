@@ -170,6 +170,24 @@
             background: #444;
         }
         
+        .refresh-button {
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 8px 16px;
+            border-radius: 0;
+            font-size: 11px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Inter', sans-serif;
+            margin-left: 10px;
+        }
+        
+        .refresh-button:hover {
+            background: #444;
+        }
+        
         .habits-list {
             display: flex;
             flex-direction: column;
@@ -547,10 +565,10 @@
         </div>
         
         <div class="sync-status" id="syncStatus">
-            <div>shared space • everyone sees the same stuff</div>
+            <div>shared space • manual refresh only</div>
             <div class="online-indicator">
                 <div class="online-dot"></div>
-                <span>live updates</span>
+                <span>click refresh to sync</span>
             </div>
         </div>
     </header>
@@ -558,7 +576,10 @@
     <div class="habits-container">
         <div class="section-title">
             Today's
-            <button class="edit-toggle" id="editToggle">edit</button>
+            <div>
+                <button class="refresh-button" id="refreshButton">refresh</button>
+                <button class="edit-toggle" id="editToggle">edit</button>
+            </div>
         </div>
         
         <div class="edit-mode" id="editMode" style="display: none;">
@@ -636,6 +657,7 @@
         const currentDate = document.getElementById('currentDate');
         const syncStatus = document.getElementById('syncStatus');
         const editToggle = document.getElementById('editToggle');
+        const refreshButton = document.getElementById('refreshButton');
         const editModeDiv = document.getElementById('editMode');
 
         // Set current date
@@ -655,6 +677,12 @@
             editModeDiv.style.display = editMode ? 'block' : 'none';
             editToggle.textContent = editMode ? 'done' : 'edit';
             renderHabits(); // Re-render to show/hide drag handles
+        });
+
+        // Refresh button
+        refreshButton.addEventListener('click', async () => {
+            await loadSharedHabits();
+            updateSyncStatus('refreshed from shared space');
         });
 
         // Drag and drop functionality
@@ -742,10 +770,11 @@
             draggedItem = null;
         }
 
-        // Shared Database Service
+        // Shared Database Service - NO AUTO REFRESH
         class SharedDatabase {
             static async loadHabits() {
                 try {
+                    console.log('Loading habits from JSONBin...');
                     const response = await fetch(`https://api.jsonbin.io/v3/b/${SHARED_BIN_ID}/latest`, {
                         headers: {
                             'X-Master-Key': SHARED_MASTER_KEY
@@ -755,18 +784,20 @@
                     if (!response.ok) throw new Error('Failed to load');
                     
                     const data = await response.json();
+                    console.log('Loaded data successfully');
                     return data.record?.habits || [];
                     
                 } catch (error) {
                     console.error('Failed to load:', error);
                     isOnline = false;
                     updateSyncStatus('offline - cant load data');
-                    return [];
+                    return habits; // Return current habits as fallback
                 }
             }
             
             static async saveHabits(habitsToSave) {
                 try {
+                    console.log('Saving habits to JSONBin...');
                     const response = await fetch(`https://api.jsonbin.io/v3/b/${SHARED_BIN_ID}`, {
                         method: 'PUT',
                         headers: {
@@ -783,6 +814,8 @@
                     
                     isOnline = true;
                     updateSyncStatus('saved to shared space');
+                    
+                    console.log('Save successful');
                     return true;
                     
                 } catch (error) {
@@ -799,7 +832,7 @@
                 <div>${message}</div>
                 <div class="online-indicator">
                     <div class="online-dot" style="background: ${isOnline ? '#10b981' : '#dc2626'}"></div>
-                    <span>${isOnline ? 'live updates' : 'offline mode'}</span>
+                    <span>${isOnline ? 'manual refresh only' : 'offline mode'}</span>
                 </div>
             `;
         }
@@ -825,7 +858,7 @@
             renderHabits();
             
             if (isOnline) {
-                updateSyncStatus('connected to shared space');
+                updateSyncStatus('loaded from shared space');
             }
         }
 
@@ -979,19 +1012,6 @@
             // Save to cloud
             await saveSharedHabits();
         }
-
-        // Auto-refresh
-        setInterval(async () => {
-            if (isOnline) {
-                let sharedHabits = await SharedDatabase.loadHabits();
-                sharedHabits = sharedHabits.filter(habit => !isHabitExpired(habit));
-                
-                if (JSON.stringify(sharedHabits) !== JSON.stringify(habits)) {
-                    habits = sharedHabits;
-                    renderHabits();
-                }
-            }
-        }, 10000);
 
         // Event listeners
         addButton.addEventListener('click', showAddHabitModal);
